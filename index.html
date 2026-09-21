@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G4S VPN</title>
+<meta name="description" content="Raggiungi da remoto gli apparati collegati al cavo Ethernet di un collega in cantiere. Niente da installare sul posto, niente permessi da chiedere.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --notte:#0B1520;
+  --quadro:#132433;
+  --linea:#22384C;
+  --testo:#E8EDF2;
+  --spento:#8497A8;
+  --ambra:#F2A81D;
+  --libero:#3FB77E;
+  --titolo:"Roboto Condensed",Impact,sans-serif;
+  --corpo:"Source Sans 3",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--notte);color:var(--testo);
+  font-family:var(--corpo);font-size:18px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.avvolge{max-width:1100px;margin:0 auto;padding:0 24px}
+.stretta{max-width:64ch}
+h1,h2,h3{font-family:var(--titolo);font-weight:700;line-height:1.05;margin:0}
+h1{font-size:clamp(2.6rem,7.5vw,5.2rem);letter-spacing:-.015em}
+h2{font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.01em;margin-bottom:.6em}
+h3{font-size:1.28rem;letter-spacing:.005em;margin-bottom:.35em}
+p{margin:0 0 1.1em}
+a{color:var(--ambra)}
+strong{font-weight:600;color:#fff}
+
+/* --- barra --- */
+.barra{
+  position:sticky;top:0;z-index:20;background:rgba(11,21,32,.86);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--linea);
+}
+.barra .avvolge{display:flex;align-items:center;gap:28px;height:62px}
+.marchio{font-family:var(--titolo);font-size:1.32rem;letter-spacing:.04em;color:#fff;text-decoration:none}
+.marchio span{color:var(--ambra)}
+.barra nav{margin-left:auto;display:flex;gap:26px;font-size:.95rem}
+.barra nav a{color:var(--spento);text-decoration:none}
+.barra nav a:hover,.barra nav a:focus-visible{color:var(--testo)}
+@media(max-width:620px){.barra nav{display:none}}
+
+/* --- apertura --- */
+.apertura{padding:clamp(56px,9vw,104px) 0 clamp(40px,6vw,64px)}
+.apertura p.guida{font-size:clamp(1.05rem,2.2vw,1.32rem);color:var(--spento);max-width:54ch;margin-top:1.1em}
+.apertura h1 em{font-style:normal;color:var(--ambra)}
+
+/* --- diagramma di linea --- */
+.tracciato{margin:clamp(44px,7vw,76px) auto 0;max-width:1100px;padding:0 24px}
+.tracciato svg{height:auto;display:block;width:100%;min-width:720px}
+.tracciato .scorri{overflow-x:auto;overflow-y:hidden;padding-bottom:10px}
+.filo{stroke:var(--linea);stroke-width:3}
+.filo-vivo{
+  stroke:var(--ambra);stroke-width:3;stroke-linecap:round;
+  stroke-dasharray:920;stroke-dashoffset:920;
+  animation:percorri 2.4s .35s cubic-bezier(.4,0,.2,1) forwards;
+}
+.nodo{fill:var(--notte);stroke:var(--testo);stroke-width:3}
+.nodo-vivo{stroke:var(--ambra)}
+.etichetta{font-family:var(--titolo);font-size:15px;fill:var(--testo);letter-spacing:.02em}
+.sotto{font-family:var(--corpo);font-size:12.5px;fill:var(--spento)}
+.terminale{fill:var(--quadro);stroke:var(--linea);stroke-width:2}
+@keyframes percorri{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.filo-vivo{animation:none;stroke-dashoffset:0}}
+
+/* su schermo stretto lo schema si legge in verticale, senza scorrimento */
+.tracciato-v{display:none}
+@media(max-width:700px){
+  .tracciato .scorri{display:none}
+  .tracciato-v{display:block;margin-top:8px}
+  .tappa{display:grid;grid-template-columns:24px 1fr;gap:16px;align-items:start}
+  .segno{position:relative;height:100%;min-height:62px}
+  .segno::before{
+    content:"";position:absolute;left:50%;top:7px;width:11px;height:11px;
+    transform:translateX(-50%);border-radius:50%;
+    border:3px solid var(--ambra);background:var(--notte);
+  }
+  .tappa:not(:last-child) .segno::after{
+    content:"";position:absolute;left:50%;top:22px;bottom:-4px;
+    width:3px;transform:translateX(-50%);background:var(--ambra);
+  }
+  .tappa b{font-family:var(--titolo);font-size:1.02rem;letter-spacing:.02em;display:block}
+  .tappa span{color:var(--spento);font-size:.9rem}
+  .tappa .tratto{display:block;color:var(--spento);font-size:.82rem;margin:.5em 0 1.1em}
+}
+
+/* --- sezioni --- */
+section{padding:clamp(56px,8vw,96px) 0}
+section+section{border-top:1px solid var(--linea)}
+
+/* --- il problema, in due colonne asimmetriche --- */
+.scontro{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,56px);align-items:start}
+@media(max-width:760px){.scontro{grid-template-columns:1fr}}
+.scontro h3{color:var(--spento);font-size:1.05rem;letter-spacing:.06em;margin-bottom:.9em}
+.scontro ul{margin:0;padding-left:1.1em;color:var(--spento)}
+.scontro li{margin-bottom:.55em}
+.scontro .noi li{color:var(--testo)}
+.scontro .noi li::marker{color:var(--libero)}
+
+/* --- passi: hanno numeri perché sono davvero una sequenza --- */
+.passi{counter-reset:p;display:grid;gap:2px;margin-top:8px}
+.passo{
+  display:grid;grid-template-columns:auto 1fr;gap:20px;
+  background:var(--quadro);padding:22px 24px;align-items:start;
+}
+.passo::before{
+  counter-increment:p;content:counter(p);
+  font-family:var(--titolo);font-size:1.5rem;color:var(--ambra);
+  line-height:1;padding-top:2px;min-width:1.2ch;
+}
+.passo p{margin:0;color:var(--spento);font-size:1rem}
+.passo .chi{display:block;font-size:.82rem;color:var(--spento);letter-spacing:.06em;margin-bottom:.25em}
+
+/* --- codice come nell'app --- */
+.codice{
+  font-family:var(--mono);font-size:1.5rem;letter-spacing:.22em;
+  color:var(--testo);background:var(--notte);border:1px solid var(--linea);
+  padding:8px 16px;display:inline-block;margin:.7em 0 .1em;
+}
+.passo .codice{font-size:1.28rem}
+
+/* --- fatti --- */
+.fatti{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--linea);border:1px solid var(--linea)}
+.fatto{background:var(--notte);padding:26px 24px}
+.fatto b{display:block;font-family:var(--titolo);font-size:2.4rem;color:var(--ambra);line-height:1}
+.fatto span{display:block;color:var(--spento);font-size:.97rem;margin-top:.5em}
+
+/* --- sicurezza --- */
+.recinti{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:10px}
+.recinto{border-left:2px solid var(--libero);padding-left:20px}
+.recinto p{color:var(--spento);font-size:1rem;margin:0}
+
+/* --- chiusura --- */
+.chiusura{background:var(--quadro);border-top:1px solid var(--linea)}
+.chiusura .avvolge{max-width:1100px}
+.chiusura .avvolge>*{max-width:64ch}
+.pulsante{
+  display:inline-block;background:var(--ambra);color:var(--notte);
+  font-family:var(--titolo);font-size:1.12rem;letter-spacing:.03em;
+  padding:14px 30px;text-decoration:none;margin-top:8px;
+}
+.pulsante:hover,.pulsante:focus-visible{background:#ffc247}
+footer{border-top:1px solid var(--linea);padding:34px 0;color:var(--spento);font-size:.92rem}
+footer a{color:var(--spento)}
+:focus-visible{outline:2px solid var(--ambra);outline-offset:3px}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="avvolge">
+    <a class="marchio" href="#">G4S <span>VPN</span></a>
+    <nav>
+      <a href="#come">Come funziona</a>
+      <a href="#sicurezza">Sicurezza</a>
+      <a href="#contatti">Contatti</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="apertura">
+  <div class="avvolge">
+    <h1>L'apparato è in deposito.<br>Tu <em>non</em> ci sei.</h1>
+    <p class="guida stretta">G4S VPN ti collega agli apparati attaccati al cavo Ethernet
+    di un collega in cantiere, dal tuo ufficio, con i tuoi programmi di diagnostica.
+    Sul posto non si installa niente e non si chiede nessun permesso.</p>
+  </div>
+
+  <div class="tracciato">
+    <div class="scorri">
+    <svg viewBox="0 0 1100 172" role="img" aria-label="Schema del collegamento: dal PC operatore al centralino su Internet, poi al PC di cantiere e infine agli apparati.">
+      <line class="filo" x1="90" y1="86" x2="1000" y2="86"/>
+      <line class="filo-vivo" x1="90" y1="86" x2="1000" y2="86"/>
+
+      <g>
+        <circle class="nodo nodo-vivo" cx="90" cy="86" r="11"/>
+        <text class="etichetta" x="90" y="128" text-anchor="middle">PC OPERATORE</text>
+        <text class="sotto" x="90" y="148" text-anchor="middle">il tuo ufficio</text>
+      </g>
+      <g>
+        <circle class="nodo nodo-vivo" cx="397" cy="86" r="11"/>
+        <text class="etichetta" x="397" y="128" text-anchor="middle">CENTRALINO</text>
+        <text class="sotto" x="397" y="148" text-anchor="middle">su Internet</text>
+      </g>
+      <g>
+        <circle class="nodo nodo-vivo" cx="704" cy="86" r="11"/>
+        <text class="etichetta" x="704" y="128" text-anchor="middle">PC DI CANTIERE</text>
+        <text class="sotto" x="704" y="148" text-anchor="middle">del collega</text>
+      </g>
+      <g>
+        <rect class="terminale" x="962" y="60" width="76" height="52"/>
+        <circle class="nodo nodo-vivo" cx="1000" cy="86" r="8"/>
+        <text class="etichetta" x="1000" y="144" text-anchor="middle">APPARATI</text>
+      </g>
+
+      <text class="sotto" x="243" y="66" text-anchor="middle">tunnel cifrato</text>
+      <text class="sotto" x="550" y="66" text-anchor="middle">tunnel cifrato</text>
+      <text class="sotto" x="852" y="66" text-anchor="middle">cavo Ethernet</text>
+    </svg>
+    </div>
+
+    <div class="tracciato-v">
+      <div class="tappa"><div class="segno"></div><div>
+        <b>PC OPERATORE</b><span>il tuo ufficio</span>
+        <span class="tratto">tunnel cifrato</span></div></div>
+      <div class="tappa"><div class="segno"></div><div>
+        <b>CENTRALINO</b><span>su Internet</span>
+        <span class="tratto">tunnel cifrato</span></div></div>
+      <div class="tappa"><div class="segno"></div><div>
+        <b>PC DI CANTIERE</b><span>del collega</span>
+        <span class="tratto">cavo Ethernet</span></div></div>
+      <div class="tappa"><div class="segno"></div><div>
+        <b>APPARATI</b></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="problema">
+  <div class="avvolge">
+    <h2 class="stretta">Oggi si fa in trasferta, o non si fa</h2>
+    <div class="scontro">
+      <div>
+        <h3>Come va adesso</h3>
+        <ul>
+          <li>Qualcuno prende l'auto per collegare un cavo e leggere un valore.</li>
+          <li>Si chiede al reparto IT una regola sul firewall, e si aspetta.</li>
+          <li>Si prende il controllo del PC del collega, e si lavora sul suo schermo,
+              con il suo mouse, mentre lui sta fermo a guardare.</li>
+          <li>Gli apparati hanno un solo indirizzo e nessun gateway: rispondono
+              soltanto a chi è sul loro stesso cavo.</li>
+        </ul>
+      </div>
+      <div class="noi">
+        <h3>Come va con G4S VPN</h3>
+        <ul>
+          <li>Il collega apre un programma e detta un codice al telefono.</li>
+          <li>Tu lo digiti, scegli cosa raggiungere, lui accetta.</li>
+          <li>I <strong>tuoi</strong> programmi vedono gli apparati come se il cavo
+              fosse attaccato alla tua macchina.</li>
+          <li>Gli apparati non vengono riconfigurati: vedono un vicino sul loro
+              segmento e rispondono.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="come">
+  <div class="avvolge">
+    <h2 class="stretta">Un collegamento, cinque passaggi</h2>
+    <p class="stretta" style="color:var(--spento)">Il collega in cantiere non deve sapere
+    cos'è una VPN, né avere i permessi di amministratore sul suo PC.</p>
+
+    <div class="passi">
+      <div class="passo">
+        <p><span class="chi">In cantiere</span>Il collega apre il programma. Compare un
+        codice, sempre lo stesso, che detta al telefono.<br>
+        <span class="codice">NMH6 G65N 7H</span></p>
+      </div>
+      <div class="passo">
+        <p><span class="chi">In ufficio</span>Tu digiti il codice e scegli quale rete
+        di apparati vuoi raggiungere. Il programma ti propone già quelle che il PC
+        di cantiere vede sul cavo.</p>
+      </div>
+      <div class="passo">
+        <p><span class="chi">In cantiere</span>Sul suo schermo compare una richiesta con
+        il tuo nome e cosa vuoi raggiungere. Accetta, o rifiuta. Senza il suo sì
+        non entra nessuno.</p>
+      </div>
+      <div class="passo">
+        <p><span class="chi">In ufficio</span>Il tunnel si alza. Da qui in poi lavori
+        con gli strumenti di sempre: il browser di configurazione, il software di
+        diagnostica, il terminale.</p>
+      </div>
+      <div class="passo">
+        <p><span class="chi">Alla fine</span>Chiudi il collegamento — oppure lo chiude
+        lui, in qualsiasi momento, con un pulsante. Il passaggio si richiude e
+        gli apparati tornano irraggiungibili.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ostacoli">
+  <div class="avvolge">
+    <h2 class="stretta">Costruito per le reti aziendali, non contro</h2>
+    <p class="stretta">Sul PC di cantiere gli antivirus e i controlli di rete
+    aziendali bloccano qualsiasi connessione in arrivo. È il motivo per cui gli
+    strumenti di accesso remoto tradizionali lì non funzionano, o funzionano solo
+    dopo settimane di richieste al reparto IT.</p>
+    <p class="stretta">G4S VPN non apre porte e non aspetta nessuno: <strong>i due PC
+    chiamano il centralino, mai il contrario</strong>. Per la rete aziendale è traffico
+    in uscita, come aprire una pagina web.</p>
+
+    <div class="fatti" style="margin-top:36px">
+      <div class="fatto"><b>0</b><span>porte da aprire sul firewall</span></div>
+      <div class="fatto"><b>0</b><span>programmi installati in cantiere</span></div>
+      <div class="fatto"><b>0</b><span>permessi di amministratore richiesti sul posto</span></div>
+      <div class="fatto"><b>1</b><span>codice da dettare, e nient'altro</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="sicurezza">
+  <div class="avvolge">
+    <h2 class="stretta">Tre recinti, non uno</h2>
+    <p class="stretta" style="color:var(--spento)">Un accesso remoto che entra in una rete
+    industriale deve poter spiegare cosa non può fare. Qui i limiti sono tre, e
+    sono indipendenti: perché uno ceda, devono cedere tutti.</p>
+
+    <div class="recinti">
+      <div class="recinto">
+        <h3>Il consenso è sul posto</h3>
+        <p>Nessuna sessione parte senza che qualcuno in cantiere accetti, vedendo
+        chi chiede e cosa vuole raggiungere. Può interromperla quando vuole.</p>
+      </div>
+      <div class="recinto">
+        <h3>Passa solo la sessione aperta</h3>
+        <p>Il centralino instrada soltanto ciò che appartiene a un collegamento in
+        corso e alla rete concordata. Chiuso il collegamento, la strada sparisce.</p>
+      </div>
+      <div class="recinto">
+        <h3>Il PC di cantiere si difende da solo</h3>
+        <p>Consegna solo reti private di apparati: mai la rete da cui esce su
+        Internet, mai i propri indirizzi. Se qualcuno le chiede, dice di no.</p>
+      </div>
+    </div>
+
+    <p class="stretta" style="margin-top:34px">Il traffico viaggia cifrato con WireGuard,
+    lo stesso protocollo usato dalle VPN moderne. Le chiavi private vengono generate
+    su ogni macchina e non escono mai: nemmeno il centralino può leggere quello che
+    passa.</p>
+  </div>
+</section>
+
+<section class="chiusura" id="contatti">
+  <div class="avvolge">
+    <h2>Vuoi vederlo su un vostro deposito?</h2>
+    <p>La prova dura mezza giornata e non richiede modifiche alla vostra rete:
+    serve un PC in cantiere con il cavo già attaccato agli apparati, e un
+    operatore da remoto.</p>
+    <a class="pulsante" href="mailto:amministrazione@green4space.it?subject=G4S%20VPN%20%E2%80%94%20richiesta%20di%20prova">Scrivici per una prova</a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="avvolge">
+    G4S VPN — Green4Space ·
+    <a href="mailto:amministrazione@green4space.it">amministrazione@green4space.it</a>
+  </div>
+</footer>
+
+</body>
+</html>
